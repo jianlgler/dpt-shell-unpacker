@@ -1,30 +1,5 @@
 #!/usr/bin/env python3
-"""
-extract_key.py
-Retrieves the dpt-shell config key (DPT_UNKNOWN_DATA) from the packer's
-native library (assets/vwwwwwvwww/<abi>/lib*.so). No disassembler needed.
 
-  1. symbol  DPT_UNKNOWN_DATA is an exported dynamic symbol (a 16-byte array
-             in .data). Its address is mapped to a file offset through the
-             PT_LOAD segments and the 16 bytes are read. Works on ARM, ARM64,
-             x86 and x86_64 builds, 32 and 64 bit.
-  2. verify  with --config, the key is checked by decrypting d_shell_data_001
-             (AES-128-CBC, IV = key with iv[3]=0x2f, iv[9]=0x76) and requiring
-             valid PKCS#7 padding and a JSON object.
-  3. scan    if the symbol is missing (stripped or renamed) or fails to verify,
-             and --config is given, every 16-byte window of the library's
-             loaded data is tried as the key until one decrypts the config.
-
-The key scheme is the one of dpt-shell v2.11.x-v2.12.x. From v2.13.0 the AES
-key is derived with HMAC-SHA256 and AES-256 is used, so verification fails.
-
-Usage:
-  extract_key.py libe01ce7566771bf96.so
-  extract_key.py libe01ce7566771bf96.so --config d_shell_data_001
-
-stdout : the key as hex (pipe-friendly)
-stderr : colored log
-"""
 import sys, os, struct, argparse
 
 
